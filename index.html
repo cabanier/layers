@@ -6,9 +6,9 @@
   <meta content="ED" name="w3c-status">
   <link href="https://www.w3.org/StyleSheets/TR/2021/W3C-ED" rel="stylesheet">
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
-  <meta content="Bikeshed version cace53f8c, updated Tue Dec 7 12:12:54 2021 -0800" name="generator">
+  <meta content="Bikeshed version 37b7e7e68, updated Fri May 27 15:08:11 2022 -0700" name="generator">
   <link href="https://www.w3.org/TR/webxrlayers-1/" rel="canonical">
-  <meta content="175ab75f4e2a144282bf411f8cb238485a2656b0" name="document-revision">
+  <meta content="e8618c869c91743f3b47bb3fb869eacd7e66390e" name="document-revision">
   <link href="favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
   <link href="favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
 <style>
@@ -646,7 +646,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">WebXR Layers API Level 1</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#ED">Editor’s Draft</a>, <time class="dt-updated" datetime="2022-01-05">5 January 2022</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#ED">Editor’s Draft</a>, <time class="dt-updated" datetime="2022-06-14">14 June 2022</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -655,13 +655,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <dd><a class="u-url" href="https://immersive-web.github.io/layers/">https://immersive-web.github.io/layers/</a>
       <dt>Latest published version:
       <dd><a href="https://www.w3.org/TR/webxrlayers-1/">https://www.w3.org/TR/webxrlayers-1/</a>
-      <dt>Previous Versions:
-      <dd><a href="https://www.w3.org/TR/2020/WD-webxrlayers-1-20210824/" rel="prev">https://www.w3.org/TR/2020/WD-webxrlayers-1-20210824/</a>
       <dt>Feedback:
       <dd><a href="https://github.com/immersive-web/layers/issues/">GitHub</a>
       <dd><a href="#issues-index">Inline In Spec</a>
       <dt class="editor">Editor:
-      <dd class="editor p-author h-card vcard" data-editor-id="106988"><a class="p-name fn u-email email" href="mailto:cabanier@fb.com">Rik Cabanier</a> (<a class="p-org org" href="https://oculus.com">Facebook</a>)
+      <dd class="editor p-author h-card vcard" data-editor-id="106988"><a class="p-name fn u-email email" href="mailto:cabanier@fb.com">Rik Cabanier</a> (<a class="p-org org" href="https://facebook.com">Meta</a>)
       <dt>Participate:
       <dd><a href="https://github.com/immersive-web/layers/issues/new">File an issue</a> (<a href="https://github.com/immersive-web/layers/issues">open issues</a>)
       <dd><a href="https://lists.w3.org/Archives/Public/public-immersive-web-wg/">Mailing list archive</a>
@@ -685,7 +683,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <p> This document was published by the <a href="https://www.w3.org/groups/wg/immersive-web">Immersive Web Working Group</a> as an Editors' Draft. This document is intended to become a W3C Recommendation.
 
     Feedback and comments on this specification are welcome. Please use <a href="https://github.com/immersive-web/layers/issues">Github issues</a>.
-    Discussions may also be found in the <a href="http://lists.w3.org/Archives/Public/public-immersive-web/">public-immersive-web@w3.org archives</a>. </p>
+    Discussions may also be found in the <a href="http://lists.w3.org/Archives/Public/public-immersive-web-wg/">public-immersive-web-wg@w3.org archives</a>. </p>
    <p> Publication as an Editors' Draft does not imply endorsement by <abbr title="World Wide Web Consortium">W3C</abbr> and its Members. This is a draft document and may
     be updated, replaced or obsoleted by other documents at any time. It is inappropriate to cite
     this document as other than work in progress. </p>
@@ -773,6 +771,11 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li><a href="#xrlayerallocation"><span class="secno">11.2</span> <span class="content">Allocation of layers</span></a>
      </ol>
     <li>
+     <a href="#changes"><span class="secno"></span> <span class="content"> Changes</span></a>
+     <ol class="toc">
+      <li><a href="#changes-from-20201203"><span class="secno"></span> <span class="content"> Changes from the <span>First Public Working Draft 3 December 2020</span></span></a>
+     </ol>
+    <li>
      <a href="#w3c-conformance"><span class="secno"></span> <span class="content">Conformance</span></a>
      <ol class="toc">
       <li><a href="#w3c-conventions"><span class="secno"></span> <span class="content">Document conventions</span></a>
@@ -797,27 +800,28 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <main>
    <h2 class="heading settled" data-level="1" id="intro"><span class="secno">1. </span><span class="content">Introduction</span><a class="self-link" href="#intro"></a></h2>
    <section class="non-normative">
-    <p>The spec adds support of `composition` layers to the WebXR spec. The benefits of layers are as follows:</p>
+    <p>This specification adds support of `composition` layers to the WebXR spec. The benefits of layers are as follows:</p>
     <ul>
      <li data-md>
-      <p><b>Performance and judder</b> Composition layers are presented at the frame rate of the compositor (i.e. native refresh rate of HMD) rather than at the application frame rate.
+      <p><b>Performance and judder</b>: Composition layers are presented at the frame rate of the compositor (i.e. native refresh rate of HMD) rather than at the application frame rate.
 Even when the application is not updating the layer’s rendering at the native refresh rate of the compositor, the compositor might be able to re-project the existing
 rendering to the proper pose. This results in smoother rendering and less judder. Another feature of layers is that each of them can have different resolution. This allows the
 application to scale down the main eye buffer resolution on low performance systems, but keeping essential information, such as text or a map, in its own layer at a higher
 resolution.</p>
      <li data-md>
-      <p><b>Legibility/visual fidelity</b> The resolution for eye-buffers for 3D world rendering can be set to relatively low values especially on low performance systems. It would
-be impossible to render high fidelity content, such as text, in this case. Each layer may have its own resolution and it will be re-sampled only once by the compositor (in contrary
-to the traditional approach with rendering layers via WebGL where the layer’s content got re-sampled at least twice: once when rendering into WebGL
-eye-buffer (and losing a lot of details due to limited eye-buffer resolution) and the second time by the compositor).</p>
+      <p><b>Legibility/visual fidelity</b>: In regular WebXR, the resolution for eye-buffers might be reduced to relatively low values especially on low performance systems. This makes
+it harder to render high fidelity content, such as text. With Composition Layers, a static cylinder or quad layer can be drawn once at high resolution and is resampled only once by the compositor. This contrasts with
+the traditional approach with rendering an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer">XRWebGLLayer</a></code> where content is produced at the device’s refresh rate and resampled at least twice: once when rendering into WebGL eye-buffer (which can lose details due to
+lower eye-buffer resolution) and the second time by the compositor.</p>
      <li data-md>
-      <p><b>Power consumption / battery life</b> Due to reduced rendering pipeline, the lack of double sampling and no need to update the layer’s rendering each frame, the power
+      <p><b>Power consumption / battery life</b>: Due to the reduced rendering pipeline, the lack of double sampling and no need to update the layer’s rendering each frame, the power
 consumption is expected to be improved.</p>
      <li data-md>
-      <p><b>Latency</b> Pose sampling for composition layers may occur at the very end of the frame and then certain reprojection techniques could be used to update the layer’s pose to
+      <p><b>Latency</b>: Pose sampling for composition layers may occur at the very end of the frame and then certain reprojection techniques could be used to update the layer’s pose to
 match it with the most recent HMD pose. This may significantly reduce the effective latency for the layers' rendering and as a result improve overall experience.</p>
+     <li data-md>
+      <p><b>Support for more color types</b>: WebXR only supports RGB values. Composition layer will have broader support for color types so authors can use compressed formats or sRGB.</p>
     </ul>
-    <p class="issue" id="issue-f8fc5b4f"><a class="self-link" href="#issue-f8fc5b4f"></a> how to do hit testing? Should it be done by the UA?</p>
    </section>
    <h3 class="heading settled" data-level="1.1" id="terminology"><span class="secno">1.1. </span><span class="content">Terminology</span><a class="self-link" href="#terminology"></a></h3>
    <h3 class="heading settled" data-level="1.2" id="applicationflow"><span class="secno">1.2. </span><span class="content">Application flow</span><a class="self-link" href="#applicationflow"></a></h3>
@@ -1191,7 +1195,7 @@ with the view point at the center.</p>
    </div>
    <p>The <dfn class="dfn-paneled idl-code" data-dfn-for="XRCubeLayer" data-dfn-type="attribute" data-export id="dom-xrcubelayer-onredraw"><code>onredraw</code></dfn> attribute is an Event handler IDL attribute for the <code class="idl"><a data-link-type="idl" href="#eventdef-xrlayer-redraw" id="ref-for-eventdef-xrlayer-redraw④">redraw</a></code> event type.</p>
    <h2 class="heading settled" data-level="4" id="spaces"><span class="secno">4. </span><span class="content">Spaces</span><a class="self-link" href="#spaces"></a></h2>
-   <p><code class="idl"><a data-link-type="idl" href="#xrprojectionlayer" id="ref-for-xrprojectionlayer⑥">XRProjectionLayer</a></code> and <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer">XRWebGLLayer</a></code> don’t have associated an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrspace" id="ref-for-xrspace⑨">XRSpace</a></code> because they render to the full frame.</p>
+   <p><code class="idl"><a data-link-type="idl" href="#xrprojectionlayer" id="ref-for-xrprojectionlayer⑥">XRProjectionLayer</a></code> and <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer①">XRWebGLLayer</a></code> don’t have associated an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrspace" id="ref-for-xrspace⑨">XRSpace</a></code> because they render to the full frame.</p>
    <p><code class="idl"><a data-link-type="idl" href="#xrcubelayer" id="ref-for-xrcubelayer③">XRCubeLayer</a></code> and <code class="idl"><a data-link-type="idl" href="#xrequirectlayer" id="ref-for-xrequirectlayer③">XREquirectLayer</a></code> MUST only support <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrreferencespace" id="ref-for-xrreferencespace②">XRReferenceSpaces</a></code> that are not of type <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#dom-xrreferencespacetype-viewer" id="ref-for-dom-xrreferencespacetype-viewer②">"viewer"</a></code>.</p>
    <p><code class="idl"><a data-link-type="idl" href="#xrquadlayer" id="ref-for-xrquadlayer②">XRQuadLayer</a></code> and <code class="idl"><a data-link-type="idl" href="#xrcylinderlayer" id="ref-for-xrcylinderlayer②">XRCylinderLayer</a></code> MUST support all <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrspace" id="ref-for-xrspace①⓪">XRSpace</a></code> types.</p>
    <section class="non-normative">
@@ -2302,7 +2306,7 @@ an <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#xr-anima
     <li data-md>
      <p>The <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrlayer" id="ref-for-xrlayer②">XRLayer</a></code> was added to <code class="idl"><a data-link-type="idl" href="#dom-xrrenderstate-layers" id="ref-for-dom-xrrenderstate-layers③">layers</a></code> since the previous <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#xr-animation-frame" id="ref-for-xr-animation-frame⑤">XR animation frame</a>.</p>
     <li data-md>
-     <p><code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrlayer" id="ref-for-xrlayer③">XRLayer</a></code> is an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer①">XRWebGLLayer</a></code> and <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.11" id="ref-for-5.14.11">clear</a></code>, <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.11" id="ref-for-5.14.11①">drawArrays</a></code>, <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.11" id="ref-for-5.14.11②">drawElements</a></code>, or any other rendering operation which similarly affects the framebuffer’s color values has been called while the <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#opaque-framebuffer" id="ref-for-opaque-framebuffer">opaque framebuffer</a> is the currently bound framebuffer of the <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#WebGLRenderingContext" id="ref-for-WebGLRenderingContext⑧">WebGLRenderingContext</a></code> associated with the <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer②">XRWebGLLayer</a></code>.</p>
+     <p><code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrlayer" id="ref-for-xrlayer③">XRLayer</a></code> is an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer②">XRWebGLLayer</a></code> and <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.11" id="ref-for-5.14.11">clear</a></code>, <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.11" id="ref-for-5.14.11①">drawArrays</a></code>, <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.11" id="ref-for-5.14.11②">drawElements</a></code>, or any other rendering operation which similarly affects the framebuffer’s color values has been called while the <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#opaque-framebuffer" id="ref-for-opaque-framebuffer">opaque framebuffer</a> is the currently bound framebuffer of the <code class="idl"><a data-link-type="idl" href="https://www.khronos.org/registry/webgl/specs/latest/1.0/#WebGLRenderingContext" id="ref-for-WebGLRenderingContext⑧">WebGLRenderingContext</a></code> associated with the <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer③">XRWebGLLayer</a></code>.</p>
     <li data-md>
      <p><code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrlayer" id="ref-for-xrlayer④">XRLayer</a></code> is an <code class="idl"><a data-link-type="idl" href="#xrcompositionlayer" id="ref-for-xrcompositionlayer②③">XRCompositionLayer</a></code> and <code class="idl"><a data-link-type="idl" href="#dom-xrwebglbinding-getsubimage" id="ref-for-dom-xrwebglbinding-getsubimage⑥">getSubImage()</a></code> or <code class="idl"><a data-link-type="idl" href="#dom-xrwebglbinding-getviewsubimage" id="ref-for-dom-xrwebglbinding-getviewsubimage⑥">getViewSubImage()</a></code> was called and any rendering operation has been called that affects the color value of the <code class="idl"><a data-link-type="idl" href="#dom-xrwebglsubimage-colortexture" id="ref-for-dom-xrwebglsubimage-colortexture①⑥">colorTexture</a></code> texture.</p>
    </ul>
@@ -2594,7 +2598,7 @@ in order of its position in the array using <a data-link-type="dfn" href="https:
          <li data-md>
           <p>If <var>layer</var> is an <code class="idl"><a data-link-type="idl" href="#xrcompositionlayer" id="ref-for-xrcompositionlayer②⑦">XRCompositionLayer</a></code> and <var>layer</var>’s <a data-link-type="dfn" href="#xrcompositionlayer-session" id="ref-for-xrcompositionlayer-session⑧">session</a> is different from <var>session</var>, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑤">TypeError</a></code> and abort these steps.</p>
          <li data-md>
-          <p>If <var>layer</var> is an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer③">XRWebGLLayer</a></code> and <var>layer</var>’s <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#xrwebgllayer-session" id="ref-for-xrwebgllayer-session">session</a> is different from <var>session</var>, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑥">TypeError</a></code> and abort these steps.</p>
+          <p>If <var>layer</var> is an <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#xrwebgllayer" id="ref-for-xrwebgllayer④">XRWebGLLayer</a></code> and <var>layer</var>’s <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#xrwebgllayer-session" id="ref-for-xrwebgllayer-session">session</a> is different from <var>session</var>, throw a <code class="idl"><a data-link-type="idl" href="https://webidl.spec.whatwg.org/#exceptiondef-typeerror" id="ref-for-exceptiondef-typeerror②⑥">TypeError</a></code> and abort these steps.</p>
         </ol>
        <li data-md>
         <p>Set <var>session</var>’s <a data-link-type="dfn" href="https://immersive-web.github.io/webxr/#pending-render-state" id="ref-for-pending-render-state③">pending render state</a>'s <code class="idl"><a data-link-type="idl" href="https://immersive-web.github.io/webxr/#dom-xrrenderstate-baselayer" id="ref-for-dom-xrrenderstate-baselayer">baseLayer</a></code> to <code>null</code>.</p>
@@ -2632,6 +2636,46 @@ Moreover, content in a layer MUST not be observable in other layers.</p>
    <p>If possible, composition of layers should happen outside the browser to reduce risk of timing attacks or other security vulnerabilities.</p>
    <h3 class="heading settled" data-level="11.2" id="xrlayerallocation"><span class="secno">11.2. </span><span class="content">Allocation of layers</span><a class="self-link" href="#xrlayerallocation"></a></h3>
    <p>The user agent MAY put limits on any resource allocation such as the maximum pixel size or the number of layers to reduce the identifiability of the GPU hardware.</p>
+   <h2 class="no-num heading settled" id="changes"><span class="content"> Changes</span><a class="self-link" href="#changes"></a></h2>
+   <h3 class="no-num heading settled" id="changes-from-20201203"><span class="content"> Changes from the <a href="https://www.w3.org/TR/2020/WD-webxrlayers-1-20201203/">First Public Working Draft 3 December 2020</a></span><a class="self-link" href="#changes-from-20201203"></a></h3>
+   <p>New features:</p>
+   <ul>
+    <li data-md>
+     <p>Add support for depth testing across layers (<a href="https://github.com/immersive-web/layers/pull/271">GitHub #271</a>)</p>
+    <li data-md>
+     <p>Added support for ignoreDepthValues to XRWebGLBinding (<a href="https://github.com/immersive-web/layers/pull/269">GitHub #269</a>)</p>
+    <li data-md>
+     <p>Allow creation of projection layers if depth support isn’t enabled in the context (<a href="https://github.com/immersive-web/layers/pull/250">GitHub #250</a>)</p>
+    <li data-md>
+     <p>Add support to return the number of created mip levels (<a href="https://github.com/immersive-web/layers/pull/245">GitHub #245</a>)</p>
+    <li data-md>
+     <p>Add support for mipmapping (<a href="https://github.com/immersive-web/layers/pull/243">GitHub #243</a>)</p>
+    <li data-md>
+     <p>Texture size attributes (<a href="https://github.com/immersive-web/layers/pull/241">GitHub #241</a>)</p>
+   </ul>
+   <p>Changes:</p>
+   <ul>
+    <li data-md>
+     <p>fixed small issue in layout algo and in clearing of opaque textures (<a href="https://github.com/immersive-web/layers/pull/257">GitHub #257</a>)</p>
+    <li data-md>
+     <p>Clarify aspectratio (<a href="https://github.com/immersive-web/layers/pull/256">GitHub #256</a>)</p>
+    <li data-md>
+     <p>Added some language about the layer memory allocation (<a href="https://github.com/immersive-web/layers/pull/255">GitHub #255</a>)</p>
+    <li data-md>
+     <p>Removed synchronous GPU allocation in layer creation + added validation in getsubimage/getviewsubimage (<a href="https://github.com/immersive-web/layers/pull/254">GitHub #254</a>)</p>
+    <li data-md>
+     <p>Some fixes in getSubImage and getViewSubImage (<a href="https://github.com/immersive-web/layers/pull/253">GitHub #253</a>)</p>
+    <li data-md>
+     <p>Fix for missing handling of side-by-side textures (<a href="https://github.com/immersive-web/layers/pull/251">GitHub #251</a>)</p>
+    <li data-md>
+     <p>Add default value {} to optional dictionary arguments (<a href="https://github.com/immersive-web/layers/pull/248">GitHub #248</a>)</p>
+    <li data-md>
+     <p>Moved foveation to projection layer (<a href="https://github.com/immersive-web/layers/pull/247">GitHub #247</a>)</p>
+    <li data-md>
+     <p>Rename textureLayers to textureArrayLength (<a href="https://github.com/immersive-web/layers/pull/242">GitHub #242</a>)</p>
+    <li data-md>
+     <p>Clarify that opaque textures are always initialized at the start of the frame (<a href="https://github.com/immersive-web/layers/pull/234">GitHub #234</a>)</p>
+   </ul>
   </main>
   <div data-fill-with="conformance">
    <h2 class="no-ref no-num heading settled" id="w3c-conformance"><span class="content">Conformance</span><a class="self-link" href="#w3c-conformance"></a></h2>
@@ -3556,9 +3600,10 @@ Moreover, content in a layer MUST not be observable in other layers.</p>
   <aside class="dfn-panel" data-for="term-for-xrwebgllayer">
    <a href="https://immersive-web.github.io/webxr/#xrwebgllayer">https://immersive-web.github.io/webxr/#xrwebgllayer</a><b>Referenced in:</b>
    <ul>
-    <li><a href="#ref-for-xrwebgllayer">4. Spaces</a>
-    <li><a href="#ref-for-xrwebgllayer①">6.9. XRWebGLBinding</a> <a href="#ref-for-xrwebgllayer②">(2)</a>
-    <li><a href="#ref-for-xrwebgllayer③">10.2. updateRenderState changes</a>
+    <li><a href="#ref-for-xrwebgllayer">1. Introduction</a>
+    <li><a href="#ref-for-xrwebgllayer①">4. Spaces</a>
+    <li><a href="#ref-for-xrwebgllayer②">6.9. XRWebGLBinding</a> <a href="#ref-for-xrwebgllayer③">(2)</a>
+    <li><a href="#ref-for-xrwebgllayer④">10.2. updateRenderState changes</a>
    </ul>
   </aside>
   <aside class="dfn-panel" data-for="term-for-typedefdef-xrwebglrenderingcontext">
@@ -3878,7 +3923,7 @@ Moreover, content in a layer MUST not be observable in other layers.</p>
      <li><span class="dfn-paneled" id="term-for-dom-permissions-request">request(permissionDesc)</span>
     </ul>
    <li>
-    <a data-link-type="biblio">[webgl 2.0]</a> defines the following terms:
+    <a data-link-type="biblio">[WEBGL 2.0]</a> defines the following terms:
     <ul>
      <li><span class="dfn-paneled" id="term-for-5.14">DEPTH24_STENCIL8</span>
      <li><span class="dfn-paneled" id="term-for-5.14①">DEPTH_COMPONENT24</span>
@@ -4018,9 +4063,9 @@ Moreover, content in a layer MUST not be observable in other layers.</p>
    <dt id="biblio-webidl">[WEBIDL]
    <dd>Edgar Chen; Timothy Gu. <a href="https://webidl.spec.whatwg.org/"><cite>Web IDL Standard</cite></a>. Living Standard. URL: <a href="https://webidl.spec.whatwg.org/">https://webidl.spec.whatwg.org/</a>
    <dt id="biblio-webxr">[WEBXR]
-   <dd>Brandon Jones; Manish Goregaokar; Rik Cabanier. <a href="https://www.w3.org/TR/webxr/"><cite>WebXR Device API</cite></a>. 24 December 2021. WD. URL: <a href="https://www.w3.org/TR/webxr/">https://www.w3.org/TR/webxr/</a>
+   <dd>Brandon Jones; Manish Goregaokar; Rik Cabanier. <a href="https://www.w3.org/TR/webxr/"><cite>WebXR Device API</cite></a>. 1 June 2022. CR. URL: <a href="https://www.w3.org/TR/webxr/">https://www.w3.org/TR/webxr/</a>
    <dt id="biblio-webxr-ar-module-1">[WEBXR-AR-MODULE-1]
-   <dd>Brandon Jones; Manish Goregaokar; Rik Cabanier. <a href="https://www.w3.org/TR/webxr-ar-module-1/"><cite>WebXR Augmented Reality Module - Level 1</cite></a>. 24 December 2021. WD. URL: <a href="https://www.w3.org/TR/webxr-ar-module-1/">https://www.w3.org/TR/webxr-ar-module-1/</a>
+   <dd>Brandon Jones; Manish Goregaokar; Rik Cabanier. <a href="https://www.w3.org/TR/webxr-ar-module-1/"><cite>WebXR Augmented Reality Module - Level 1</cite></a>. 26 April 2022. WD. URL: <a href="https://www.w3.org/TR/webxr-ar-module-1/">https://www.w3.org/TR/webxr-ar-module-1/</a>
   </dl>
   <h3 class="no-num no-ref heading settled" id="informative"><span class="content">Informative References</span><a class="self-link" href="#informative"></a></h3>
   <dl>
@@ -4231,7 +4276,6 @@ Moreover, content in a layer MUST not be observable in other layers.</p>
 </pre>
   <h2 class="no-num no-ref heading settled" id="issues-index"><span class="content">Issues Index</span><a class="self-link" href="#issues-index"></a></h2>
   <div style="counter-reset:issue">
-   <div class="issue"> how to do hit testing? Should it be done by the UA? <a class="issue-return" href="#issue-f8fc5b4f" title="Jump to section">↵</a></div>
    <div class="issue"> this section needs clarification <a class="issue-return" href="#issue-9b6533f8" title="Jump to section">↵</a></div>
    <div class="issue"> this section needs clarification <a class="issue-return" href="#issue-9b6533f8①" title="Jump to section">↵</a></div>
    <div class="issue"> the init dictionaries shouldn’t be optional. This is bikeshed issue 1566. <a class="issue-return" href="#issue-2325a847" title="Jump to section">↵</a></div>
