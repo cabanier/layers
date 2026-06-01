@@ -502,7 +502,12 @@ The <dfn attribute for="XRProjectionLayer">ignoreDepthValues</dfn> attribute, if
 is <code>false</code> it indicates that the content of the depth buffer attachment will be used by the
 [=XR Compositor=] and is expected to be representative of the scene rendered into the layer.
 
-The <dfn attribute for="XRProjectionLayer">deltaPose</dfn> attribute describes the incremental application-applied transform, if any, since the previous frame that affects the view. If the user agent or device does not support this attribute or the "[=feature descriptor/space-warp=]" [=feature descriptor=] was not requested, they should return <code>null</code> on getting, and setting should be a <code>no-op</code>. When artificial locomotion happens, the experience transforms the whole world from one application pose to another pose between frames and {{XRProjectionLayer/deltaPose}} MUST be populated with the difference in the scene's world position. The {{XRProjectionLayer/deltaPose}} should be identity when there is no transformation between the previous and the current {{XRFrame}}.
+The <dfn attribute for="XRProjectionLayer">deltaPose</dfn> attribute describes the incremental application-applied transform, if any, since the previous frame that affects the view.
+If the user agent or device does not support this attribute or the "[=feature descriptor/space-warp=]" [=feature descriptor=] was not requested, the user agent should return <code>null</code> on getting, and setting should be a <code>no-op</code>.
+A <code>null</code> value indicates that no application-applied transform is being supplied.
+The value of {{XRProjectionLayer/deltaPose}} persists until the author changes it; the user agent does not reset it at the end of an {{XRSession/requestAnimationFrame()}} callback.
+When artificial locomotion transforms the world from one application pose to another between frames, setting {{XRProjectionLayer/deltaPose}} to the difference between those poses helps the [=XR Compositor=] synthesize missing frames.
+Authors should update {{XRProjectionLayer/deltaPose}} when that transform changes and set it to <code>null</code> or an identity transform for frames where no application-applied transform occurred.
 
 XRQuadLayer {#xrquadlayertype}
 -----------
@@ -775,8 +780,6 @@ The {{XRWebGLSubImage}} object is used during rendering of the layer.
   readonly attribute unsigned long colorTextureHeight;
   readonly attribute unsigned long? depthStencilTextureWidth;
   readonly attribute unsigned long? depthStencilTextureHeight;
-  readonly attribute unsigned long? motionVectorTextureWidth;
-  readonly attribute unsigned long? motionVectorTextureHeight;
 };
 </pre>
 
@@ -791,15 +794,11 @@ If the {{XRSession}} was created without the [=feature descriptor/space-warp=] [
 The <dfn attribute for="XRWebGLSubImage">imageIndex</dfn> attribute returns the offset into the texture array. Valid only for layers
 that were requested with {{texture-array}}.
 
-The <dfn attribute for="XRWebGLSubImage">colorTextureWidth</dfn> and <dfn attribute for="XRWebGLSubImage">depthStencilTextureHeight</dfn> attributes
-return the width and height in pixels of the GL depth attachments
+The <dfn attribute for="XRWebGLSubImage">colorTextureWidth</dfn> and <dfn attribute for="XRWebGLSubImage">colorTextureHeight</dfn> attributes
+return the width and height in pixels of the GL color attachments.
 
-The <dfn attribute for="XRWebGLSubImage">depthStencilTextureWidth</dfn> and <dfn attribute for="XRWebGLSubImage">colorTextureHeight</dfn> attributes
-return the width and height in pixels of the GL color attachments. If the layer was created without depth/stencil, this attribute returns null.
-
-The <dfn attribute for="XRWebGLSubImage">motionVectorTextureWidth</dfn> and <dfn attribute for="XRWebGLSubImage">motionVectorTextureHeight</dfn> attributes
-return the width and height in pixels of the GL motion vector attachments.
-If the {{XRSession}} was created without the [=feature descriptor/space-warp=] [=feature descriptor=] or the layer is not a {{XRProjectionLayer}}, these attributes MUST return null.
+The <dfn attribute for="XRWebGLSubImage">depthStencilTextureWidth</dfn> and <dfn attribute for="XRWebGLSubImage">depthStencilTextureHeight</dfn> attributes
+return the width and height in pixels of the GL depth/stencil attachments. If the layer was created without depth/stencil, these attributes return null.
 
 XRTextureType {#xrtexturetype}
 -------------
@@ -1240,16 +1239,18 @@ To <dfn>allocate color textures for projection layers</dfn> using an {{XRProject
 <div class="algorithm" data-algorithm="allocate depth textures for projection layers">
 
 To <dfn>allocate depth textures for projection layers</dfn> using an {{XRProjectionLayer}} |layer|, an {{XRTextureType}} |textureType|, a {{GLenum}} |textureFormat| and a float |scaleFactor|, the user agent MUST run the following steps:
-  1. Let |array| be a [=new=] array in the [=relevant realm=] of |context|.
   1. Let |context| be |layer|'s [=XRCompositionLayer/context=].
+  1. Let |array| be a [=new=] array in the [=relevant realm=] of |context|.
   1. Let |session| be |layer|'s [=XRCompositionLayer/session=].
   1. If |textureFormat| is <code>0</code>, return |array| and abort these steps.
   1. If |context| is a {{WebGLRenderingContext}} and the {{WEBGL_depth_texture}} [=extension=] is not enabled in |context|, return |array| and abort these steps.
   1. If |textureFormat| is not in the [=list of depth formats for projection layers=], throw a {{NotSupportedError}} and abort these steps.
   1. let |numViews| be the number of the |session|'s [=list of views=] excluding the [=secondary view|secondary views=].
   1. Let |view| be the first entry in the |session|'s [=list of views=] that is not a [=secondary view=].
-  1. Let |width| be the width of |view|'s [=recommended WebGL depth texture resolution=] multiplied by |scaleFactor|.
-  1. Let |height| be the height of |view|'s [=recommended WebGL depth texture resolution=] multiplied by |scaleFactor|.
+  1. Let |recommendedDepthResolution| be |view|'s [=recommended WebGL depth texture resolution=].
+  1. If |session| was created with the "[=space-warp=]" [=feature descriptor=], set |recommendedDepthResolution| to |view|'s [=recommended motion vector texture resolution=].
+  1. Let |width| be the width of |recommendedDepthResolution| multiplied by |scaleFactor|.
+  1. Let |height| be the height of |recommendedDepthResolution| multiplied by |scaleFactor|.
   1. If |layer|'s {{XRCompositionLayer/layout}} is {{XRLayerLayout/"mono"}} or {{XRLayerLayout/"default"}}:
         <dl class="switch">
         <dt> If |textureType| is {{"texture-array"}}:
@@ -1259,14 +1260,17 @@ To <dfn>allocate depth textures for projection layers</dfn> using an {{XRProject
         <dt> Otherwise
           <dd> For each |view| in the |session|'s [=list of views=]:
             1. If |view| is a [=secondary view=], continue.
-            1. Let |width| be the width of |view|'s [=recommended WebGL depth texture resolution=] multiplied by |scaleFactor|.
-            1. Let |height| be the height of |view|'s [=recommended WebGL depth texture resolution=] multiplied by |scaleFactor|.
+            1. Let |recommendedDepthResolution| be |view|'s [=recommended WebGL depth texture resolution=].
+            1. If |session| was created with the "[=space-warp=]" [=feature descriptor=], set |recommendedDepthResolution| to |view|'s [=recommended motion vector texture resolution=].
+            1. Let |width| be the width of |recommendedDepthResolution| multiplied by |scaleFactor|.
+            1. Let |height| be the height of |recommendedDepthResolution| multiplied by |scaleFactor|.
             1. let |texture| be a [=new=] instance of an [=opaque texture=] in the [=relevant realm=] of |context| created as a {{TEXTURE_2D}} texture with |context|, |textureFormat|, |stencil|, |width| and |height|.
             1. If the |texture| was unable to be created for any reason, throw an {{OperationError}} and abort these steps.
             1. Append |texture| to |array|.
           <dd> Return |array| and abort these steps.
         </dl>
-  1. If the session’s [=view|views=] in the [=list of views=] don't all have the same [=recommended WebGL color texture resolution=] excluding the [=secondary view|secondary views=], throw a {{NotSupportedError}} and abort these steps.
+  1. If |session| was created with the "[=space-warp=]" [=feature descriptor=] and the session’s [=view|views=] in the [=list of views=] don't all have the same [=recommended motion vector texture resolution=] excluding the [=secondary view|secondary views=], throw a {{NotSupportedError}} and abort these steps.
+  1. If |session| was not created with the "[=space-warp=]" [=feature descriptor=] and the session’s [=view|views=] in the [=list of views=] don't all have the same [=recommended WebGL depth texture resolution=] excluding the [=secondary view|secondary views=], throw a {{NotSupportedError}} and abort these steps.
   1. If |layer|'s {{XRCompositionLayer/layout}} is {{XRLayerLayout/stereo-left-right}}, initialize |array| with 1 [=new=] instance of an [=opaque texture=] in the [=relevant realm=] of |context| created as a |textureType| texture using |context|, |textureFormat|, |stencil|, |numViews| multiplied by |width| and |height|.
   1. If |layer|'s {{XRCompositionLayer/layout}} is {{XRLayerLayout/stereo-top-bottom}}, initialize |array| with 1 [=new=] instance of an [=opaque texture=] in the [=relevant realm=] of |context| created as a |textureType| texture using |context|, |textureFormat|, |stencil|, |width| and |numViews| multiplied by |height|.
   1. If the [=opaque texture=] was unable to be created for any reason, throw an {{OperationError}} and abort these steps.
@@ -1276,9 +1280,9 @@ To <dfn>allocate depth textures for projection layers</dfn> using an {{XRProject
 
 <div class="algorithm" data-algorithm="allocate motion vector textures for projection layers">
 
-To <dfn>allocate motion vector textures for projection layers</dfn> using an {{XRProjectionLayer}} |layer|, the user agent MUST run the following steps:
-  1. Let |array| be a [=new=] array in the [=relevant realm=] of |context|.
+To <dfn>allocate motion vector textures for projection layers</dfn> using an {{XRProjectionLayer}} |layer|, an {{XRTextureType}} |textureType| and a float |scaleFactor|, the user agent MUST run the following steps:
   1. Let |context| be |layer|'s [=XRCompositionLayer/context=].
+  1. Let |array| be a [=new=] array in the [=relevant realm=] of |context|.
   1. Let |session| be |layer|'s [=XRCompositionLayer/session=].
   1. If |session| was not created with the "[=space-warp=]" [=feature descriptor=], return |array| and abort these steps.
   1. If |context| is a {{WebGLRenderingContext}} and the {{WEBGL_depth_texture}} [=extension=] is not enabled in |context|, return |array| and abort these steps.
@@ -1436,6 +1440,8 @@ When this method is invoked, the user agent MUST run the following steps:
   1. Initialize |layer|'s [=XRCompositionLayer/isStatic=] to <code>false</code>.
   1. Initialize |layer|'s {{XRProjectionLayer/ignoreDepthValues}} as follows:
       <dl class="switch">
+        <dt> If |session| was created with the "[=space-warp=]" [=feature descriptor=]
+          <dd> Initialize |layer|'s {{XRProjectionLayer/ignoreDepthValues}} to <code>false</code>
         <dt> If |init|'s {{XRProjectionLayerInit/depthFormat}} is <code>false</code> and the [=XR Compositor=] will make use of depth values
           <dd> Initialize |layer|'s {{XRProjectionLayer/ignoreDepthValues}} to <code>false</code>
         <dt> Otherwise
@@ -1449,7 +1455,7 @@ When this method is invoked, the user agent MUST run the following steps:
   1. Initialize |layer|'s {{XRCompositionLayer/needsRedraw}} to <code>true</code>.
   1. let |layer|'s [=colorTextures=] be the result of [=allocate color textures for projection layers|allocating color textures for projection layers=] with |layer|, |init|'s {{XRProjectionLayerInit/textureType}}, |init|'s {{XRProjectionLayerInit/colorFormat}} and |init|'s {{XRProjectionLayerInit/scaleFactor}}.
   1. let |layer|'s [=depthStencilTextures=] be the result of [=allocate depth textures for projection layers|allocating depth textures for projection layers=] with |layer|, |init|'s {{XRProjectionLayerInit/textureType}}, |init|'s {{XRProjectionLayerInit/depthFormat}} and |init|'s {{XRProjectionLayerInit/scaleFactor}}.
-  1. let |layer|'s [=motionVectorTextures=] be the result of [=allocate motion vector textures for projection layers|allocating motion vector textures for projection layers=] with |layer|, |init|'s {{XRProjectionLayerInit/depthFormat}} and |init|'s {{XRProjectionLayerInit/scaleFactor}}.
+  1. let |layer|'s [=motionVectorTextures=] be the result of [=allocate motion vector textures for projection layers|allocating motion vector textures for projection layers=] with |layer|, |init|'s {{XRProjectionLayerInit/textureType}} and |init|'s {{XRProjectionLayerInit/scaleFactor}}.
   1. Initialize the [=XRProjectionLayer/colortextures for secondary views=] as follows:
       <dl class="switch">
         <dt> If the |session| was created with "[=secondary view/secondary-views=]" enabled
@@ -1708,7 +1714,7 @@ When this method is invoked on an {{XRWebGLBinding}} |binding|, it MUST run the 
       <dt> Otherwise
         <dd> Initialize |subimage|'s {{XRWebGLSubImage/depthStencilTexture}} with the first element of |layer|'s [=depthStencilTextures=] array.
       </dl>
-  1. Initialize |subimage|'s {{XRWebGLSubImage/motionVectorTexture}}, {{XRWebGLSubImage/motionVectorTextureWidth}} and {{XRWebGLSubImage/motionVectorTextureHeight}} with <code>null</code>.
+  1. Initialize |subimage|'s {{XRWebGLSubImage/depthStencilTextureWidth}}, {{XRWebGLSubImage/depthStencilTextureHeight}}, and {{XRWebGLSubImage/motionVectorTexture}} with <code>null</code>.
   1. Set |subimage|'s {{XRWebGLSubImage/colorTextureWidth}} to the pixel width of |subimage|'s {{XRWebGLSubImage/colorTexture}}.
   1. Set |subimage|'s {{XRWebGLSubImage/colorTextureHeight}} to the pixel height of |subimage|'s {{XRWebGLSubImage/colorTexture}}.
   1. If |subimage|'s {{XRWebGLSubImage/depthStencilTexture}} is not <code>null</code>, set |subimage|'s {{XRWebGLSubImage/depthStencilTextureWidth}} to the pixel width of the first texture in the {{XRWebGLSubImage/depthStencilTexture}} array.
@@ -1784,10 +1790,9 @@ When this method is invoked on an {{XRWebGLBinding}} |binding|, it MUST run the 
       </dl>
   1. Set |subimage|'s {{XRWebGLSubImage/colorTextureWidth}} to the pixel width of |subimage|'s {{XRWebGLSubImage/colorTexture}}.
   1. Set |subimage|'s {{XRWebGLSubImage/colorTextureHeight}} to the pixel height of |subimage|'s {{XRWebGLSubImage/colorTexture}}.
+  1. Initialize |subimage|'s {{XRWebGLSubImage/depthStencilTextureWidth}} and {{XRWebGLSubImage/depthStencilTextureHeight}} with <code>null</code>.
   1. If |subimage|'s {{XRWebGLSubImage/depthStencilTexture}} is not <code>null</code>, set |subimage|'s {{XRWebGLSubImage/depthStencilTextureWidth}} to the pixel width of the first texture in the {{XRWebGLSubImage/depthStencilTexture}} array.
   1. If |subimage|'s {{XRWebGLSubImage/depthStencilTexture}} is not <code>null</code>, set |subimage|'s {{XRWebGLSubImage/depthStencilTextureHeight}} to the pixel height of the first texture in the {{XRWebGLSubImage/depthStencilTexture}} array.
-  1. If |subimage|'s {{XRWebGLSubImage/motionVectorTexture}} is not <code>null</code>, set |subimage|'s {{XRWebGLSubImage/motionVectorTextureWidth}} to the pixel width of the first texture in the {{XRWebGLSubImage/motionVectorTexture}} array.
-  1. If |subimage|'s {{XRWebGLSubImage/motionVectorTexture}} is not <code>null</code>, set |subimage|'s {{XRWebGLSubImage/motionVectorTextureHeight}} to the pixel height of the first texture in the {{XRWebGLSubImage/motionVectorTexture}} array.
   1. Run [=initialize the viewport=] on |subimage|'s {{XRSubImage/viewport}} with |subimage|'s {{XRWebGLSubImage/colorTexture}}, |layer|'s {{XRCompositionLayer/layout}}, |index| and the number of the |session|'s [=list of views=].
   1. Set {{XRCompositionLayer/needsRedraw}} to <code>false</code>.
   1. return |subimage|
@@ -2086,7 +2091,12 @@ the [=XR Compositor=] can do high quality frame extrapolation and reprojection w
 To enable [=space warp=] the {{XRSession}} MUST be created with the "<dfn for="feature descriptor">space-warp</dfn>" [=feature descriptor=].
 If "[=space-warp=]" is enabled, the [=XR Compositor=] MUST make use of depth values, {{XRProjectionLayer/ignoreDepthValues}} MUST be set to `false` and {{XRWebGLBinding/usesDepthValues}} MUST be set to `true`.
 
-When the [=feature descriptor/space-warp=] [=feature descriptor=] is enabled, the {{XRWebGLSubImage/depthStencilTexture}} for an {{XRProjectionLayer}} MUST be populated by the experience. The {{XRWebGLSubImage/depthStencilTexture}} and {{XRWebGLSubImage/motionVectorTexture}} will have the same dimensions, which may be different from the dimensions of the {{XRWebGLSubImage/colorTexture}}.
+When the [=feature descriptor/space-warp=] [=feature descriptor=] is enabled, the experience should render representative depth values into the {{XRWebGLSubImage/depthStencilTexture}} for each {{XRProjectionLayer}} it submits.
+The {{XRWebGLSubImage/depthStencilTexture}} and {{XRWebGLSubImage/motionVectorTexture}} will have the same dimensions, which may be different from the dimensions of the {{XRWebGLSubImage/colorTexture}}.
+Authors can use {{XRWebGLSubImage/depthStencilTextureWidth}} and {{XRWebGLSubImage/depthStencilTextureHeight}} to determine the dimensions of both the depth/stencil and motion vector attachments.
+
+NOTE: Since the depth/stencil attachment can have different dimensions than the color attachment, it is not intended to be attached to the framebuffer used to render into the {{XRWebGLSubImage/colorTexture}}.
+Authors should render depth/stencil information separately at the depth/stencil attachment dimensions.
 
 The {{XRWebGLSubImage/motionVectorTexture}} MUST be in {{RGBA16F}} format. The author SHOULD fill in the RG components of this texture with the 2D screen-space motion vector for that area, expressed as a delta in <dfn>Normalized Device Coordinates</dfn> (<dfn>NDC</dfn>) between the current frame and the previous frame. The motion vector is computed as `(currentClipPos / currentW) - (prevClipPos / prevW)`, where `currentClipPos` and `prevClipPos` are the <dfn>clip space</dfn> positions of the fragment in the current and previous frames, respectively. The red channel corresponds to the delta in [=NDC=] X (horizontal), and the green channel corresponds to the delta in [=NDC=] Y (vertical). The blue channel MAY contain the delta in [=NDC=] Z (depth), and the alpha channel is unused.
 
@@ -2164,8 +2174,9 @@ resolution large enough to contain the view.
 
 If the {{XRSession}} was created with the "[=feature descriptor/space-warp=]" [=feature descriptor=], each [=view=] MUST define a <dfn>recommended motion vector texture resolution</dfn> which is based on the [=recommended WebGL color texture resolution=].
 
-Each [=view=] MUST also define a <dfn>recommended WebGL depth texture resolution</dfn> which is based on the [=recommended WebGL color texture resolution=] and [=recommended motion vector texture resolution=]. The user agent MAY decide to reduce the
-[=recommended WebGL depth texture resolution=] if "[=feature descriptor/space-warp=]" is enabled.
+Each [=view=] MUST also define a <dfn>recommended WebGL depth texture resolution</dfn> which represents a best estimate of the WebGL depth texture
+resolution large enough to contain the view.
+If the {{XRSession}} was created with the "[=feature descriptor/space-warp=]" [=feature descriptor=], the [=recommended WebGL depth texture resolution=] MUST be equal to the [=recommended motion vector texture resolution=].
 
 <div class="unstable">
 
